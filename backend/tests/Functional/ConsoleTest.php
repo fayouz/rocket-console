@@ -5,6 +5,7 @@ namespace App\Tests\Functional;
 use App\Billing\CatalogueSeeder;
 use App\Licence\LicenceSigner;
 use App\Tests\ApiTestTrait;
+use Rocket\Core\Secrets\SecretVault;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 /** Catalogue, accounts, subscriptions, quotes, entitlements, licence keys, overview and audit log. No network. */
@@ -19,6 +20,7 @@ final class ConsoleTest extends WebTestCase
     {
         $this->client = static::createClient();
         static::getContainer()->get(CatalogueSeeder::class)->seed();
+        static::getContainer()->get(SecretVault::class)->set('rocket.console.signing_key', 'test-signing-key-0123456789abcdef0123456789');
         $this->admin = 'Bearer '.$this->jwtFor($this->createUser('admin@example.org', ['ROLE_ADMIN']));
         $this->alice = 'Bearer '.$this->jwtFor($this->createUser('alice@example.org'));
     }

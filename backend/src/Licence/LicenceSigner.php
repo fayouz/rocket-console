@@ -2,8 +2,11 @@
 
 namespace App\Licence;
 
+use App\Secrets\IntegrationSecrets;
+
 /**
- * Compact JWS of the entitlements documents and licence keys, keyed by ROCKET_CONSOLE_SIGNING_KEY:
+ * Compact JWS of the entitlements documents and licence keys, keyed by the vault secret rocket.console.signing_key
+ * (legacy ROCKET_CONSOLE_SIGNING_KEY as the transition fallback, see App\Secrets\IntegrationSecrets):
  * - "ed25519:<base64 of a 32-byte seed>": EdDSA (Ed25519) — self-hosted instances only need the public key;
  * - any other value (≥ 32 characters): HS256 — shared secret (the instances of the suite).
  * Verifying (for rocket-core later): split on ".", base64url-decode the header, check "alg", verify the signature of
@@ -13,18 +16,23 @@ final class LicenceSigner
 {
     public const ISSUER = 'rocket-console';
 
-    public function __construct(private readonly string $signingKey)
+    public function __construct(private readonly IntegrationSecrets $secrets)
     {
+    }
+
+    private function key(): string
+    {
+        return $this->secrets->get('rocket.console.signing_key');
     }
 
     public function isConfigured(): bool
     {
-        return '' !== trim($this->signingKey);
+        return '' !== trim($this->key());
     }
 
     public function algorithm(): string
     {
-        return str_starts_with($this->signingKey, 'ed25519:') ? 'EdDSA' : 'HS256';
+        return str_starts_with($this->key(), 'ed25519:') ? 'EdDSA' : 'HS256';
     }
 
     /** Base64url Ed25519 public key (EdDSA only), to give to self-hosted instances. */
@@ -79,23 +87,23 @@ final class LicenceSigner
     private function signature(string $input): string
     {
         if (!$this->isConfigured()) {
-            throw new \LogicException('ROCKET_CONSOLE_SIGNING_KEY n’est pas définie.');
+            throw new \LogicException('Clé de signature absente : secret rocket.console.signing_key (Administration → Secrets).');
         }
         if ('EdDSA' === $this->algorithm()) {
             return sodium_crypto_sign_detached($input, sodium_crypto_sign_secretkey(sodium_crypto_sign_seed_keypair($this->seed())));
         }
-        if (\strlen($this->signingKey) < 32) {
-            throw new \LogicException('ROCKET_CONSOLE_SIGNING_KEY : 32 caractères au moins.');
+        if (\strlen($this->key()) < 32) {
+            throw new \LogicException('Clé de signature (rocket.console.signing_key) : 32 caractères au moins.');
         }
 
-        return hash_hmac('sha256', $input, $this->signingKey, true);
+        return hash_hmac('sha256', $input, $this->key(), true);
     }
 
     private function seed(): string
     {
-        $seed = base64_decode(substr($this->signingKey, 8), true);
+        $seed = base64_decode(substr($this->key(), 8), true);
         if (false === $seed || \SODIUM_CRYPTO_SIGN_SEEDBYTES !== \strlen($seed)) {
-            throw new \LogicException('ROCKET_CONSOLE_SIGNING_KEY : « ed25519: » suivi de 32 octets en base64.');
+            throw new \LogicException('Clé de signature (rocket.console.signing_key) : « ed25519: » suivi de 32 octets en base64.');
         }
 
         return $seed;
@@ -103,7 +111,7 @@ final class LicenceSigner
 
     private function keyId(): string
     {
-        return substr(hash('sha256', $this->publicKey() ?? $this->signingKey), 0, 12);
+        return substr(hash('sha256', $this->publicKey() ?? $this->key()), 0, 12);
     }
 
     private static function b64(string $raw): string

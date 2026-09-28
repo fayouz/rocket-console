@@ -1,14 +1,11 @@
 parameters:
     env(UPDATE_REPOSITORY): 'fayouz/rocket-console'
-    env(ROCKET_CONSOLE_SIGNING_KEY): ''
     env(ROCKET_MAILER_URL): ''
 
 services:
     _defaults:
         autowire: true
         autoconfigure: true
-        bind:
-            $signingKey: '%env(ROCKET_CONSOLE_SIGNING_KEY)%'
 
     App\:
         resource: '../src/'
