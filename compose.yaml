@@ -13,8 +13,9 @@ x-api-env: &api-env
   SETUP_TOKEN: ${SETUP_TOKEN:-}
   # Encrypts the secrets stored in the database (empty: derived from APP_SECRET).
   SECRETS_ENCRYPTION_KEY: ${SECRETS_ENCRYPTION_KEY:-}
+  # Master key of the secrets vault (integration tokens, Administration → Secrets): rocket:secrets:generate-key.
+  ROCKET_SECRETS_KEY: ${ROCKET_SECRETS_KEY:-}
   # Signing key of the entitlements documents and licence keys ("ed25519:<base64 seed>" or a 32+ character secret).
-  ROCKET_CONSOLE_SIGNING_KEY: ${ROCKET_CONSOLE_SIGNING_KEY:-}
   # Suite mode: sign-in through Rocket Auth (see rocket-core). Empty ROCKET_AUTH_URL: standalone.
   ROCKET_AUTH_URL: ${ROCKET_AUTH_URL:-}
   ROCKET_AUTH_INTERNAL_URL: ${ROCKET_AUTH_INTERNAL_URL:-}

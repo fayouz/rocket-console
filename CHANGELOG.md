@@ -2,6 +2,14 @@
 
 Toutes les évolutions notables de Rocket Console. Format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [SemVer](https://semver.org/lang/fr/).
 
+## [0.3.0] - 2026-09-28
+
+### Modifié
+- **Secrets des intégrations dans le coffre de rocket-core** (0.3.1, Administration → Secrets) : `ROCKET_CONSOLE_SIGNING_KEY` → `rocket.console.signing_key` ; lus à l'exécution par `App\Secrets\IntegrationSecrets`, jamais renvoyés par l'API. Repli temporaire sur l'ancienne variable (avertissement « deprecated »). Seule `ROCKET_SECRETS_KEY` (clé maîtresse) reste dans l'environnement.
+
+### Ajouté
+- Commande `app:secrets:migrate-env [--dry-run] [--overwrite]` : importe les anciennes variables dans le coffre, idempotente.
+
 ## [0.2.1] - 2026-09-28
 
 ### Modifié

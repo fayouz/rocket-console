@@ -27,9 +27,23 @@ cd ../frontend && npm install && NUXT_PUBLIC_API_BASE=http://localhost:9200 npm 
 
 | Variable | Rôle |
 |---|---|
-| `ROCKET_CONSOLE_SIGNING_KEY` | Clé de signature des droits et licences : `ed25519:<32 octets base64>` (EdDSA, clé publique sur `/api/licences/public-key`) ou secret ≥ 32 caractères (HS256). Vide : pas de document signé, licences en 503. |
+| `rocket.console.signing_key` (coffre) | Clé de signature des droits et licences : `ed25519:<32 octets base64>` (EdDSA, clé publique sur `/api/licences/public-key`) ou secret ≥ 32 caractères (HS256). Vide : pas de document signé, licences en 503. |
 | `ROCKET_AUTH_URL`, `ROCKET_AUTH_INTERNAL_URL`, `ROCKET_AUTH_CLIENT_ID` (`rocket-console`), `ROCKET_AUTH_CLIENT_SECRET`, `ROCKET_AUTH_ADMIN_GROUP` | Mode suite (connexion par Rocket Auth). Vide : autonome. |
 | Socle | `APP_SECRET`, `DATABASE_URL`, `JWT_PASSPHRASE`, `SETUP_TOKEN`, `SECRETS_ENCRYPTION_KEY`, `LDAP_*`, `UPDATE_*` : voir rocket-core. |
+
+## Secrets des intégrations (coffre)
+
+Les jetons et clés des intégrations sont gardés **chiffrés en base** dans le coffre de rocket-core (Administration → **Secrets**), plus dans le `.env`. Le code les lit par `App\Secrets\IntegrationSecrets` ; l'API ne renvoie jamais leur valeur (aperçu masqué `••••1234`). Seule la clé maîtresse `ROCKET_SECRETS_KEY` (`php bin/console rocket:secrets:generate-key`) reste dans l'environnement : la sauvegarder hors de la base.
+
+| Ancienne variable | Secret du coffre |
+|---|---|
+| `ROCKET_CONSOLE_SIGNING_KEY` | `rocket.console.signing_key` |
+
+Migration d'une instance existante :
+
+1. `php bin/console rocket:secrets:generate-key` → `ROCKET_SECRETS_KEY` dans `.env.local` (ou l'environnement du conteneur) ; `php bin/console doctrine:migrations:migrate`.
+2. `php bin/console app:secrets:migrate-env --dry-run` puis `php bin/console app:secrets:migrate-env` : importe les variables ci-dessus sous leur nom de secret (idempotent, `--overwrite` pour remplacer).
+3. Retirer ces variables du `.env.local` / de l'environnement. Pendant la transition, une variable encore présente sert de repli (avertissement « deprecated » dans les journaux).
 
 ## API
 
