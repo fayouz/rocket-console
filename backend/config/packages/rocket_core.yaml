@@ -1,0 +1,4 @@
+rocket_core:
+    app_name: Rocket Console
+    app_id: console
+    token_prefix: rco_

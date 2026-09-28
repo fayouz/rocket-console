@@ -1,0 +1,22 @@
+parameters:
+    env(UPDATE_REPOSITORY): 'fayouz/rocket-console'
+    env(ROCKET_CONSOLE_SIGNING_KEY): ''
+
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        bind:
+            $signingKey: '%env(ROCKET_CONSOLE_SIGNING_KEY)%'
+
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/Entity/'
+            - '../src/Billing/Catalogue.php'
+            - '../src/Billing/SubscriptionDraft.php'
+            - '../src/Billing/InvalidSubscription.php'
+
+when@test:
+    services:
+        App\Tests\Support\HttpMock: ~

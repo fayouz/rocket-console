@@ -1,0 +1,20 @@
+{
+  "name": "Rocket Console (démo)",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+  "hostRequirements": {
+    "cpus": 2,
+    "memory": "8gb"
+  },
+  "forwardPorts": [4200, 4201],
+  "portsAttributes": {
+    "4200": { "label": "Rocket Console", "onAutoForward": "notify" },
+    "4201": { "label": "Documentation et changelog", "onAutoForward": "notify" },
+    "9200": { "label": "API", "onAutoForward": "silent" },
+    "5432": { "onAutoForward": "ignore" }
+  },
+  "postStartCommand": "bash demo/codespaces/start.sh"
+}
