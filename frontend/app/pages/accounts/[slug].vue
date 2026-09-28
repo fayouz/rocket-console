@@ -37,6 +37,12 @@ async function removeMember(m: Member) {
   await refresh()
 }
 
+// Self-service sign-up: the operator acknowledges it (the « Nouveau » badge goes away)
+async function markReviewed() {
+  await api(`/api/accounts/${slug}/signup-reviewed`, { method: 'POST' }).catch(fail('Non enregistré'))
+  await refresh()
+}
+
 // Subscription editor + live quote
 const draft = reactive({ plan: '' as string, bricks: [] as string[], options: [] as string[], quantities: { properties: 0, places: 0, screens: 0, mailboxes: 0 } as Quantities, period: 'monthly' as 'monthly' | 'yearly' })
 function loadDraft() {
@@ -99,6 +105,9 @@ async function issueLicence() {
           <UDashboardSidebarCollapse />
         </template>
         <template #right>
+          <UBadge v-if="account?.isNew" color="primary" label="Nouveau" />
+          <UButton v-if="account?.isNew" icon="i-lucide-check" label="Inscription vue" variant="ghost" @click="markReviewed" />
+          <UBadge v-else-if="account?.source === 'signup'" color="neutral" variant="outline" label="Inscription en ligne" />
           <UBadge v-if="account" :color="statusColors[account.status]" variant="subtle" :label="statusLabels[account.status]" />
           <UButton icon="i-lucide-key-round" label="Licence" variant="outline" @click="issueLicence" />
         </template>
@@ -176,7 +185,9 @@ async function issueLicence() {
           <template #header><b>Membres</b></template>
           <ul class="divide-y divide-default text-sm">
             <li v-for="m in account.members" :key="m.id" class="flex items-center justify-between py-2">
-              <span>{{ m.email }} <span class="text-muted">· {{ roles.find(r => r.value === m.role)?.label }}</span></span>
+              <span>{{ m.email }} <span class="text-muted">· {{ roles.find(r => r.value === m.role)?.label }}</span>
+                <UBadge v-if="!m.verified" class="ml-2" color="warning" variant="subtle" label="E-mail non vérifié" />
+              </span>
               <UButton size="sm" variant="ghost" color="error" icon="i-lucide-trash-2" aria-label="Retirer" @click="removeMember(m)" />
             </li>
           </ul>

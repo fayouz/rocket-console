@@ -9,7 +9,8 @@ useHead({ title: `Comptes · ${useAppConfig().rocket.name}` })
 
 const status = ref<AccountStatus | 'all'>((route.query.status as AccountStatus) || 'all')
 const q = ref('')
-const { data: accounts, refresh } = await useAsyncData('accounts', () => api<AccountRow[]>('/api/accounts', { query: { status: status.value === 'all' ? undefined : status.value, q: q.value || undefined } }), { default: () => [], watch: [status] })
+const onlyNew = ref(route.query.new === '1')
+const { data: accounts, refresh } = await useAsyncData('accounts', () => api<AccountRow[]>('/api/accounts', { query: { status: status.value === 'all' ? undefined : status.value, q: q.value || undefined, new: onlyNew.value ? 1 : undefined } }), { default: () => [], watch: [status, onlyNew] })
 const statusItems = [{ label: 'Tous', value: 'all' }, ...Object.entries(statusLabels).map(([value, label]) => ({ label, value }))]
 
 const open = ref(false)
@@ -42,6 +43,7 @@ async function create() {
       <div class="flex flex-wrap gap-2">
         <USelect v-model="status" :items="statusItems" class="w-40" />
         <UInput v-model="q" icon="i-lucide-search" placeholder="Nom ou identifiant" @keyup.enter="refresh()" />
+        <UCheckbox v-model="onlyNew" label="Nouvelles inscriptions" class="self-center" />
       </div>
       <UCard>
         <ul class="divide-y divide-default text-sm">
@@ -51,6 +53,7 @@ async function create() {
               <span class="text-muted"> · {{ a.slug }} · {{ a.subscription?.plan ?? (a.subscription?.bricks.join(', ') || 'sans abonnement') }} · {{ a.members }} membre(s)</span>
             </NuxtLink>
             <span class="flex items-center gap-2">
+              <UBadge v-if="a.isNew" color="primary" label="Nouveau" />
               <span v-if="a.status === 'trial'" class="text-muted">fin d’essai {{ dateFr(a.trialEndsAt) }}</span>
               <b>{{ euros(a.monthlyCents) }}</b><span class="text-muted">/ mois</span>
               <UBadge :color="statusColors[a.status]" variant="subtle" :label="statusLabels[a.status]" />

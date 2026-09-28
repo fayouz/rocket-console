@@ -7,6 +7,7 @@ use App\Billing\CatalogueProvider;
 use App\Billing\InvalidSubscription;
 use App\Billing\QuoteCalculator;
 use App\Billing\SubscriptionDraft;
+use App\Billing\SubscriptionPayload;
 use App\Entity\Account;
 use App\Entity\Member;
 use App\Entity\Subscription;
@@ -45,6 +46,9 @@ final class AccountController extends AbstractController
         $qb = $this->em->getRepository(Account::class)->createQueryBuilder('a')->orderBy('a.name', 'ASC');
         if (\in_array($status = $request->query->get('status'), Account::STATUSES, true)) {
             $qb->andWhere('a.status = :s')->setParameter('s', $status);
+        }
+        if ($request->query->getBoolean('new')) {
+            $qb->andWhere("a.source = 'signup' AND a.signupReviewedAt IS NULL");
         }
         if ('' !== $q = trim((string) $request->query->get('q'))) {
             $qb->andWhere('LOWER(a.name) LIKE :q OR a.slug LIKE :q')->setParameter('q', '%'.mb_strtolower($q).'%');
@@ -105,6 +109,18 @@ final class AccountController extends AbstractController
         }
         $this->apply($account, $p);
         $this->audit->log('account.update', 'account', $slug, $slug, $request->toArray());
+        $this->em->flush();
+
+        return $this->json($this->detail($account));
+    }
+
+    /** The operator acknowledges a self-service sign-up: the « Nouveau » badge goes away. */
+    #[Route('/api/accounts/{slug}/signup-reviewed', name: 'api_account_signup_reviewed', methods: ['POST'], requirements: ['slug' => self::SLUG])]
+    public function signupReviewed(string $slug): JsonResponse
+    {
+        $account = $this->account($slug);
+        $account->markSignupReviewed(new \DateTimeImmutable());
+        $this->audit->log('account.signup_reviewed', 'account', $slug, $slug);
         $this->em->flush();
 
         return $this->json($this->detail($account));
@@ -183,7 +199,7 @@ final class AccountController extends AbstractController
         $account = $this->account($slug);
         $p = new Payload($request->toArray());
         $sub = new Subscription($account, $p->date('startsAt') ?? new \DateTimeImmutable('today'));
-        $this->applySubscription($sub, $p);
+        SubscriptionPayload::apply($sub, $p);
         $quote = $this->validated($sub);
         $previous = $account->currentSubscription($sub->getStartsAt());
         if (null !== $previous && $previous->getStartsAt() < $sub->getStartsAt()) {
@@ -206,7 +222,7 @@ final class AccountController extends AbstractController
         if ($p->has('startsAt')) {
             $sub->setStartsAt($p->date('startsAt') ?? throw new HttpException(422, 'Champ « startsAt » requis.'));
         }
-        $this->applySubscription($sub, $p);
+        SubscriptionPayload::apply($sub, $p);
         $quote = $this->validated($sub);
         $this->audit->log('subscription.update', 'subscription', $id, $sub->getAccount()->getSlug(), $request->toArray());
         $this->em->flush();
@@ -230,7 +246,7 @@ final class AccountController extends AbstractController
     public function quote(Request $request): JsonResponse
     {
         $sub = new Subscription(new Account('draft', 'draft'));
-        $this->applySubscription($sub, new Payload($request->toArray()));
+        SubscriptionPayload::apply($sub, new Payload($request->toArray()));
 
         return $this->json($this->validated($sub));
     }
@@ -293,38 +309,6 @@ final class AccountController extends AbstractController
             return $this->quotes->quote($this->catalogue->catalogue(), SubscriptionDraft::of($sub));
         } catch (InvalidSubscription $e) {
             throw new HttpException(422, $e->getMessage());
-        }
-    }
-
-    private function applySubscription(Subscription $sub, Payload $p): void
-    {
-        if ($p->has('plan')) {
-            $sub->setPlan($p->code('plan', false));
-        }
-        if ($p->has('bricks')) {
-            $sub->setBricks($p->codes('bricks'));
-        }
-        if ($p->has('options')) {
-            $sub->setOptions($p->codes('options'));
-        }
-        if ($p->has('quantities')) {
-            $q = new Payload($p->array('quantities'));
-            $values = [];
-            foreach (Subscription::QUANTITIES as $key) {
-                if ($q->has($key)) {
-                    $values[$key] = (int) $q->int($key, true);
-                }
-            }
-            $sub->setQuantities($values);
-        }
-        if ($p->has('period')) {
-            $sub->setPeriod($p->choice('period', Subscription::PERIODS));
-        }
-        if ($p->has('endsAt')) {
-            $sub->setEndsAt($p->date('endsAt'));
-        }
-        if (null !== $sub->getEndsAt() && $sub->getEndsAt() <= $sub->getStartsAt()) {
-            throw new HttpException(422, 'La fin doit suivre le début.');
         }
     }
 
