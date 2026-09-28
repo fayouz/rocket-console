@@ -2,7 +2,7 @@
 
 Toutes les évolutions notables de Rocket Console. Format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [SemVer](https://semver.org/lang/fr/).
 
-## [Non publié]
+## [0.2.0] - 2026-09-28
 
 ### Ajouté
 - **Inscription en libre-service** avec choix de l'offre : page publique `/inscription` (offre ou briques à la carte, options, quantités, mensuel/annuel, devis en direct ; entreprise et propriétaire ; confirmation et prochaines étapes) et `/inscription/verifier`.
