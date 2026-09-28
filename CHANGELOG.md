@@ -2,6 +2,17 @@
 
 Toutes les évolutions notables de Rocket Console. Format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [SemVer](https://semver.org/lang/fr/).
 
+## [Non publié]
+
+### Ajouté
+- **Inscription en libre-service** avec choix de l'offre : page publique `/inscription` (offre ou briques à la carte, options, quantités, mensuel/annuel, devis en direct ; entreprise et propriétaire ; confirmation et prochaines étapes) et `/inscription/verifier`.
+- API publique limitée par IP : `GET /api/public/catalogue`, `POST /api/public/quote`, `POST /api/public/signup` (champ piège, délai minimal, idempotente par e-mail non vérifié), `POST /api/public/verify-email`.
+- Compte créé en essai (`trialDays`), abonnement créé, propriétaire membre `owner` en attente de vérification ; e-mail par Rocket Mailer si `ROCKET_MAILER_URL`, sinon lien journalisé (et renvoyé hors production).
+- Opérateur : badge « Nouveau » et filtre « Nouvelles inscriptions » (`GET /api/accounts?new=1`), `POST /api/accounts/{slug}/signup-reviewed`, badge « E-mail non vérifié » sur les membres.
+
+### Modifié
+- Membres : mot de passe (haché) et vérification d'e-mail ; les membres existants sont marqués vérifiés par la migration.
+
 ## [0.1.0] - 2026-09-28
 
 ### Ajouté
