@@ -15,8 +15,8 @@ export default defineAppConfig({
     icon: 'i-lucide-rocket',
     // Login page subtitle.
     tagline: 'La console d’exploitation de la suite Rocket : comptes, abonnements, catalogue et licences.',
-    // Public pages (no account): none.
-    publicPaths: [] as string[],
+    // Public pages (no account): the self-service sign-up with offer choice.
+    publicPaths: ['/inscription'] as string[],
     // Main menu: the domain pages ("label" entries start a group).
     navigation: [
       { label: 'Exploitation', type: 'label' },
