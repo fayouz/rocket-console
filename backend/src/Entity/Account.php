@@ -51,6 +51,14 @@ class Account
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $notes = null;
 
+    /** How the account was created: null (by the operator) or "signup" (self-service, public page). */
+    #[ORM\Column(length: 16, nullable: true)]
+    private ?string $source = null;
+
+    /** When the operator acknowledged a self-service sign-up (until then: badge « Nouveau »). */
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $signupReviewedAt = null;
+
     /** @var Collection<int, Member> */
     #[ORM\OneToMany(targetEntity: Member::class, mappedBy: 'account', cascade: ['persist', 'remove'], orphanRemoval: true)]
     #[ORM\OrderBy(['email' => 'ASC'])]
@@ -87,6 +95,10 @@ class Account
     public function setCountry(?string $v): static { $this->country = null === $v ? null : strtoupper($v); return $this; }
     public function setVatNumber(?string $v): static { $this->vatNumber = $v; return $this; }
     public function setNotes(?string $v): static { $this->notes = $v; return $this; }
+    public function getSource(): ?string { return $this->source; }
+    public function setSource(?string $v): static { $this->source = $v; return $this; }
+    public function markSignupReviewed(\DateTimeImmutable $at): static { $this->signupReviewedAt = $at; return $this; }
+    public function isNewSignup(): bool { return 'signup' === $this->source && null === $this->signupReviewedAt; }
     /** @return Collection<int, Member> */
     public function getMembers(): Collection { return $this->members; }
     public function addMember(Member $m): static { $this->members->add($m); return $this; }
@@ -109,6 +121,6 @@ class Account
     /** @return array<string, mixed> */
     public function toArray(): array
     {
-        return ['id' => $this->id->toRfc4122(), 'slug' => $this->slug, 'name' => $this->name, 'status' => $this->status, 'trialEndsAt' => $this->trialEndsAt?->format(\DATE_ATOM), 'billingName' => $this->billingName, 'billingEmail' => $this->billingEmail, 'billingAddress' => $this->billingAddress, 'country' => $this->country, 'vatNumber' => $this->vatNumber, 'notes' => $this->notes, 'createdAt' => $this->getCreatedAt()?->format(\DATE_ATOM)];
+        return ['id' => $this->id->toRfc4122(), 'slug' => $this->slug, 'name' => $this->name, 'status' => $this->status, 'trialEndsAt' => $this->trialEndsAt?->format(\DATE_ATOM), 'billingName' => $this->billingName, 'billingEmail' => $this->billingEmail, 'billingAddress' => $this->billingAddress, 'country' => $this->country, 'vatNumber' => $this->vatNumber, 'notes' => $this->notes, 'source' => $this->source, 'isNew' => $this->isNewSignup(), 'createdAt' => $this->getCreatedAt()?->format(\DATE_ATOM)];
     }
 }
