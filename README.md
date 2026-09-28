@@ -1,65 +1,43 @@
 # Rocket Console
 
-**Stock** des lieux (logements, locaux…) : catalogue (consommables, linge, équipements), niveaux par lieu et emplacement (quantité **et** OK / Bas / Vide), mouvements idempotents (usage location / perso), magasins et offres, liste de courses et paniers cochés en magasin, équipements (garantie, notice Rocket Cloud), export du bilan de consommation, alertes de stock bas (Rocket Mailer, désactivées par défaut). Extrait de [rocket-place](https://github.com/fayouz/rocket-place) ; brique du Middleware Rocket, sur le socle [rocket-core](https://github.com/fayouz/rocket-core).
+**Console d'exploitation SaaS** de la suite Rocket : une instance partagée pour tous les clients, briques vendues à la carte. Catalogue (briques, options, offres, règles de prix), comptes clients et membres, abonnements avec devis, **droits** (entitlements) lus par les briques et **clés de licence** signées pour les instances auto-hébergées. Tableau de bord MRR et journal d'audit. Pas encore de paiement.
 
-| Dossier | Stack |
-|---|---|
-| `backend/` | Symfony 8.1, API Platform, Doctrine (PostgreSQL), rocket-core (`rocket/core-bundle`) |
-| `frontend/` | Nuxt 4, Nuxt UI 4, layer `@rocket/core` |
-| `docs/` | Documentation (Nuxt UI + Nuxt Content), changelog sur `/changelog` |
+Stack : Symfony 8.1 + [rocket/core-bundle](https://github.com/fayouz/rocket-core), Nuxt 4 + layer `@rocket/core`, PostgreSQL 16.
 
-Le socle commun (comptes, LDAP, SSO / Rocket Auth, applications externes, tableau de bord, mises à jour, modes autonome et suite) vient de rocket-core : ce dépôt ne contient que le métier.
-
-## Lieux : Rocket Place ou autonome
-
-Le stock référence un lieu par son **identifiant** (`placeId`, UUID), jamais par clé étrangère : Rocket Console ne possède aucun lieu (même schéma que Rocket Clean).
-
-- **Avec Rocket Place** (`ROCKET_PLACE_URL` + `ROCKET_PLACE_TOKEN` `rpl_…`, ou jeton Rocket Auth en mode suite) : lieux de Place (`/api/places`), lus par `App\Place\PlaceClient`, nom en cache dans `Site`.
-- **Autonome** (sans `ROCKET_PLACE_URL`) : lieux locaux (entité `Site`) créés dans Rocket Console.
-
-## Démarrage rapide
+## Démarrer
 
 ```bash
-docker compose up -d --build
+docker compose up -d --build          # front http://localhost:4200, API http://localhost:9200/api/docs
+docker compose -f compose.yaml -f compose.demo.yaml up -d --build   # démo (voir demo/README.md)
 ```
 
-- Application : http://localhost:4200 (configuration initiale : création de l'administrateur)
-- API + OpenAPI : http://localhost:9200/api/docs
-- Démo complète : `docker compose -f compose.yaml -f compose.demo.yaml up -d --build` (voir [demo/README.md](demo/README.md))
-
-### Développement sans Docker
+Développement :
 
 ```bash
-# base locale
 docker run -d --name rocket-console-db -e POSTGRES_USER=app -e POSTGRES_PASSWORD=app -e POSTGRES_DB=app -p 127.0.0.1:55440:5432 postgres:16-alpine
-# backend (PHP 8.4) ; .env.local et .env.test.local : DATABASE_URL=...:55440/app, MESSENGER_TRANSPORT_DSN=sync://
-cd backend && composer install --ignore-platform-req=ext-ldap
-php bin/console lexik:jwt:generate-keypair
-php bin/console doctrine:migrations:migrate
-DEMO_MODE=1 php bin/console app:demo:seed   # facultatif
+cd backend
+printf 'DATABASE_URL="postgresql://app:app@127.0.0.1:55440/app?serverVersion=16&charset=utf8"\nMESSENGER_TRANSPORT_DSN=sync://\n' > .env.local && cp .env.local .env.test.local
+php bin/console lexik:jwt:generate-keypair && php bin/console doctrine:migrations:migrate -n
+DEMO_MODE=1 php bin/console app:demo:seed
 php -S 127.0.0.1:9200 -t public
-php bin/phpunit
-
-# frontend
-cd frontend && npm install && NUXT_PUBLIC_API_BASE=http://localhost:9200 npm run dev -- --port 4200
+cd ../frontend && npm install && NUXT_PUBLIC_API_BASE=http://localhost:9200 npm run dev -- --port 4200
 ```
 
 ## Configuration
 
 | Variable | Rôle |
 |---|---|
-| `ROCKET_PLACE_URL` / `ROCKET_PLACE_TOKEN` | Rocket Place (lieux), jeton d'application `rpl_…`. Vide : lieux locaux. |
-| `ROCKET_MAILER_URL`, `ROCKET_MAILER_TOKEN`, `ROCKET_MAILER_MAILBOX`, `ROCKET_MAILER_SENDER` | Rocket Mailer (alertes). Vide : démo (`var/demo-mailer-<env>.json`). |
-| `STOCK_ALERT_EMAILS` | Destinataires des alertes de stock bas, séparés par des virgules. Vide (défaut) : aucune alerte. |
-| `ROCKET_AUTH_URL`, `ROCKET_AUTH_INTERNAL_URL`, `ROCKET_AUTH_CLIENT_ID` (`rocket-console`), `ROCKET_AUTH_CLIENT_SECRET`, `ROCKET_AUTH_ADMIN_GROUP`, `ROCKET_PUBLIC_URL`, `ROCKET_INTERNAL_URL` | Mode suite. En suite, Place et Mailer sont appelés avec un jeton Rocket Auth (audiences `rocket-place`, `rocket-mailer`), les jetons statiques restent le repli. |
+| `ROCKET_CONSOLE_SIGNING_KEY` | Clé de signature des droits et licences : `ed25519:<32 octets base64>` (EdDSA, clé publique sur `/api/licences/public-key`) ou secret ≥ 32 caractères (HS256). Vide : pas de document signé, licences en 503. |
+| `ROCKET_AUTH_URL`, `ROCKET_AUTH_INTERNAL_URL`, `ROCKET_AUTH_CLIENT_ID` (`rocket-console`), `ROCKET_AUTH_CLIENT_SECRET`, `ROCKET_AUTH_ADMIN_GROUP` | Mode suite (connexion par Rocket Auth). Vide : autonome. |
+| Socle | `APP_SECRET`, `DATABASE_URL`, `JWT_PASSPHRASE`, `SETUP_TOKEN`, `SECRETS_ENCRYPTION_KEY`, `LDAP_*`, `UPDATE_*` : voir rocket-core. |
 
-## API (Host, Place, Clean, PMS)
+## API
 
-`/api/stock-items` et `/api/stock-levels` gardent les chemins et les champs de Rocket Place (IRI `place`/`item`, `PATCH {"level"}`) : un client de Place bascule en changeant l'URL et le jeton (`rco_…`). En plus : `/api/places/{placeId}/stock`, `/api/movements` (POST idempotent par `externalRef`), `/api/shopping-list`, `/api/shopping-carts`, `/api/suppliers`, `/api/stores`, `/api/equipment`, `/api/export/{movements,consumption}`. Détail : [docs/content/3.api/2.domain.md](docs/content/3.api/2.domain.md).
+Voir [docs/content/3.api/2.domain.md](docs/content/3.api/2.domain.md). Pour une brique : `GET /api/entitlements/{compte}` avec `Authorization: Bearer rco_…` (application créée dans Administration → Applications).
 
-Une application agissant pour elle-même (jeton `rco_…` sans `X-Impersonate-User`) a accès à ces routes (`StockAccessVoter`, `StockScopeGuardListener`).
+Licence en ligne de commande : `php bin/console console:licence:issue loussahousing --claims`.
 
-## Vérifier
+## Tests
 
 ```bash
 cd backend && php bin/console lint:container && php bin/console doctrine:schema:validate && php bin/phpunit

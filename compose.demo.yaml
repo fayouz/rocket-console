@@ -9,6 +9,7 @@ x-demo-env: &demo-env
   LDAP_ENABLED: "1"
   LDAP_ADMIN_GROUP_DN: cn=rocket-admins,ou=groups,dc=example,dc=org
   CORS_ALLOW_ORIGIN: ^http://localhost:4200$$
+  ROCKET_CONSOLE_SIGNING_KEY: demo-signing-key-public-do-not-use-in-production
 
 services:
   ldap:

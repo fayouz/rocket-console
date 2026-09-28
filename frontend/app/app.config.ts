@@ -5,23 +5,25 @@
 export default defineAppConfig({
   ui: {
     colors: {
-      primary: 'amber',
+      primary: 'violet',
       neutral: 'slate',
     },
   },
   rocket: {
-    id: 'stock',
+    id: 'console',
     name: 'Rocket Console',
-    icon: 'i-lucide-package',
+    icon: 'i-lucide-rocket',
     // Login page subtitle.
-    tagline: 'Le stock de tes lieux : consommables, linge, équipements, courses et bilan.',
+    tagline: 'La console d’exploitation de la suite Rocket : comptes, abonnements, catalogue et licences.',
     // Public pages (no account): none.
     publicPaths: [] as string[],
     // Main menu: the domain pages ("label" entries start a group).
     navigation: [
-      { label: 'Ménage', type: 'label' },
-      { label: 'Ménages du jour', icon: 'i-lucide-package', to: '/menage' },
-      { label: 'Lieux', icon: 'i-lucide-map-pin', to: '/places' },
+      { label: 'Exploitation', type: 'label' },
+      { label: 'Comptes', icon: 'i-lucide-building-2', to: '/accounts' },
+      { label: 'Revenus', icon: 'i-lucide-trending-up', to: '/revenus' },
+      { label: 'Catalogue', icon: 'i-lucide-blocks', to: '/catalogue' },
+      { label: 'Journal', icon: 'i-lucide-scroll-text', to: '/journal' },
     ] as { label: string, icon?: string, to?: string, type?: 'label', exact?: boolean, exactQuery?: boolean, admin?: boolean }[],
     // Extra entries of the Administration menu.
     adminNavigation: [
@@ -30,9 +32,9 @@ export default defineAppConfig({
     shortcuts: [] as { label: string, description: string, icon: string, to: string, admin?: boolean }[],
     // Hero banner of the dashboard: one quote per day.
     quotes: [
-      ['Ce qui se compte se pilote.', 'Adage d’intendance'],
-      ['Le rouleau qui manque est toujours le dernier.', 'Adage de logement'],
-      ['Ce qui n’est pas noté n’est pas fait.', 'Adage de gestion'],
+      ['Ce qui se mesure s’améliore.', 'Adage de gestion'],
+      ['Un client bien servi en amène deux.', 'Adage de commerce'],
+      ['Le meilleur produit est celui qu’on peut vendre à la carte.', 'Adage SaaS'],
     ] as [string, string][],
   },
 })

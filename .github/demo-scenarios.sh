@@ -34,7 +34,7 @@ curl -fsS $FRONT/api/dashboard -H "Authorization: Bearer $TOKEN" \
 DEMO_TOKEN=$(grep -o 'rco_demo_[a-z_]*' compose.demo.yaml | head -1)
 curl -fsS $FRONT/api/me -H "Authorization: Bearer $DEMO_TOKEN" -H 'X-Impersonate-User: admin@example.org' \
   | jq -e '.user.email == "admin@example.org" and (.roles | index("ROLE_ADMIN") | not)'
-# Rocket Console: the demo places (local sites), their stock and the shopping list
-PORT=$(curl -fsS $FRONT/api/places -H "Authorization: Bearer $ALICE" -H "Accept: application/json" | jq -r '.[] | select(.name == "Le port") | .id')
-curl -fsS $FRONT/api/places/$PORT/stock -H "Authorization: Bearer $ALICE" -H "Accept: application/json" | jq -e '(length) >= 3'
-curl -fsS "$FRONT/api/shopping-list" -H "Authorization: Bearer $ALICE" -H "Accept: application/json" | jq -e '(.lines | length) >= 1'
+# Rocket Console: the demo accounts, the MRR, and the entitlements read by a brick with the demo application token
+curl -fsS $FRONT/api/overview -H "Authorization: Bearer $TOKEN" | jq -e '.mrrCents == 4400 and .accountsByStatus.trial == 1'
+curl -fsS $FRONT/api/entitlements/loussahousing -H "Authorization: Bearer $DEMO_TOKEN" | jq -e '.active and (.bricks | index("host")) and .quotas.properties == 2'
+curl -fsS $FRONT/api/accounts -H "Authorization: Bearer $DEMO_TOKEN" -o /dev/null -w '%{http_code}' | grep -q 403

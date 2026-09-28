@@ -125,7 +125,7 @@ final class Payload
         return \is_array($v) ? $v : throw new HttpException(422, \sprintf('Champ « %s » : objet attendu.', $key));
     }
 
-    /** A UUID given plain or as an IRI ("/api/stock-items/<uuid>"). */
+    /** A UUID given plain or as an IRI ("/api/…/<uuid>"). */
     public static function id(mixed $value): ?string
     {
         if (!\is_string($value) || '' === $value) {

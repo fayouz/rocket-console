@@ -26,7 +26,7 @@ Le service `demo-seed` prépare la base, charge les données de démo et synchro
 | http://localhost:4201 | Documentation, et le changelog sur `/changelog` |
 | http://localhost:9200/api/docs | Documentation de l'API |
 
-La démo contient deux lieux locaux (« Le port », « Les vignes »), un magasin et un fournisseur, sept articles, du stock (dont des articles bas ou vides), trois mouvements et deux équipements. Ni Rocket Place ni Rocket Mailer : rien n'est envoyé.
+La démo contient le catalogue par défaut (12 briques, 4 options, offres Rocket Host et Rocket Location), le compte « loussahousing » (actif, Rocket Location pour 2 logements : 44 €/mois) et le compte « gite-des-oliviers » (essai de Rocket Host, 1 logement : minimum 29 €/mois).
 
 ## Comptes
 
@@ -39,7 +39,8 @@ La démo contient deux lieux locaux (« Le port », « Les vignes »), un magasi
 
 ## Scénarios à tester
 
-1. Connectez-vous avec `alice@example.org`.
-2. **Lieux → Le port** : passer un article en Bas / Vide, saisir une quantité.
-3. **Courses → Créer un panier** : cocher les lignes par magasin, **Terminer** : le stock entre.
-4. **Mouvements** : export de la consommation (CSV), filtré par usage.
+1. Connectez-vous avec `admin@example.org`.
+2. **Revenus** : MRR estimé, essais qui se terminent, briques en service.
+3. **Comptes → LoussaHousing** : ajouter l'option Ménage, voir le devis se recalculer, **Licence** : télécharger la clé signée.
+4. **Catalogue** : changer un prix ou une remise volume, puis revoir le devis d'un compte.
+5. **Journal** : chaque modification y figure.

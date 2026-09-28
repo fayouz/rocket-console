@@ -13,14 +13,8 @@ x-api-env: &api-env
   SETUP_TOKEN: ${SETUP_TOKEN:-}
   # Encrypts the secrets stored in the database (empty: derived from APP_SECRET).
   SECRETS_ENCRYPTION_KEY: ${SECRETS_ENCRYPTION_KEY:-}
-  # Rocket Place (places; empty: local places). Rocket Mailer (low-stock alerts, off unless STOCK_ALERT_EMAILS).
-  ROCKET_PLACE_URL: ${ROCKET_PLACE_URL:-}
-  ROCKET_PLACE_TOKEN: ${ROCKET_PLACE_TOKEN:-}
-  ROCKET_MAILER_URL: ${ROCKET_MAILER_URL:-}
-  ROCKET_MAILER_TOKEN: ${ROCKET_MAILER_TOKEN:-}
-  ROCKET_MAILER_MAILBOX: ${ROCKET_MAILER_MAILBOX:-}
-  ROCKET_MAILER_SENDER: ${ROCKET_MAILER_SENDER:-}
-  STOCK_ALERT_EMAILS: ${STOCK_ALERT_EMAILS:-}
+  # Signing key of the entitlements documents and licence keys ("ed25519:<base64 seed>" or a 32+ character secret).
+  ROCKET_CONSOLE_SIGNING_KEY: ${ROCKET_CONSOLE_SIGNING_KEY:-}
   # Suite mode: sign-in through Rocket Auth (see rocket-core). Empty ROCKET_AUTH_URL: standalone.
   ROCKET_AUTH_URL: ${ROCKET_AUTH_URL:-}
   ROCKET_AUTH_INTERNAL_URL: ${ROCKET_AUTH_INTERNAL_URL:-}

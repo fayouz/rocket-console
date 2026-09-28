@@ -1,6 +1,6 @@
 ---
 title: Rocket Console
-description: Le stock de tes lieux — consommables, linge, équipements, courses, bilan.
+description: La console d'exploitation SaaS de la suite Rocket — comptes, abonnements, catalogue, droits et licences.
 seo:
   title: Rocket Console — Documentation
 ---
@@ -8,19 +8,19 @@ seo:
 ::u-page-hero
 ---
 orientation: horizontal
-title: Le stock de tes lieux, sans rien oublier.
+title: Une seule instance, tous les clients.
 ---
 #description
-Rocket Console suit le **stock** de tes lieux : catalogue (consommables, linge, équipements), **niveaux** par lieu et emplacement (quantité et OK / Bas / Vide), **mouvements** idempotents (location ou perso), **courses** par magasin et **bilan** de consommation. Il fonctionne seul (lieux locaux) ou branché sur **Rocket Place** ; Rocket Clean, un PMS ou Rocket Host l'alimentent par l'API.
+Rocket Console pilote l'offre SaaS de la suite Rocket : **catalogue** des briques vendues à la carte et des offres, **comptes** clients et leurs membres, **abonnements** avec **devis** (minimum, remises volume, annuel), **droits** (entitlements) lus par les briques et **clés de licence** signées pour les instances auto-hébergées.
 
 #links
   :::u-button
   ---
-  to: /usage/stock
+  to: /usage/comptes
   size: xl
   trailing-icon: i-lucide-arrow-right
   ---
-  Le stock
+  Les comptes
   :::
 
   :::u-button
@@ -30,6 +30,6 @@ Rocket Console suit le **stock** de tes lieux : catalogue (consommables, linge, 
   color: neutral
   variant: subtle
   ---
-  Démarrer
+  Introduction
   :::
 ::
